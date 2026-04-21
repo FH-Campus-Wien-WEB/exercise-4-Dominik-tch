@@ -52,7 +52,10 @@ footer {
 nav > ul {
   display: flex;
   flex-direction: column;
-  row-gap: 4px;
+  gap: 5px;
+  padding: 0;
+  margin: 16px;
+  list-style-type: none;
 }
 
 footer > ul {
@@ -69,10 +72,33 @@ article h2 {
 /* navigation buttons have full width */
 nav button {
   width: 100%;
+  border: none;
+  border-radius: 8px;
+  font-size: 105%;
+  font-weight: 600;
+  color: #1e3a8a;
+  background-color: #ffffff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1); /* Sanfter Schatten */
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+nav button:hover {
+  background-color: #f8fafc;
+  box-shadow: 0 10px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(-3px);
+}
+
+nav button:active {
+  transform: translateY(0); /* Klick-Effekt: Button drückt sich nach unten */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 img {
+  width: 100%;
+  max-width: 300px;
   border-radius: 12px;
+  display: block;
+  margin-bottom: 10px;
 }
 
 a {

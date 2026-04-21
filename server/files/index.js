@@ -250,6 +250,7 @@ window.onload = function () {
         currentSession = data || null;
         updateUI();
         loadMovies();
+        document.getElementById("loginDialog").close();
       })
       .catch(error => {
         console.error("Login failed:", error);

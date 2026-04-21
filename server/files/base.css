@@ -1,7 +1,8 @@
 body {
-  font-family: "Trebuchet MS", sans-serif;
-  background-color: brown;
-  color: beige;
+  font-family: 'Trebuchet MS', Arial, sans-serif;
+  background-color: #4cd4ec;
+  margin: 0;
+  padding: 0px;
 }
 
 main {
