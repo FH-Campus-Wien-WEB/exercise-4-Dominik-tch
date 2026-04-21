@@ -168,6 +168,21 @@ window.onload = function () {
       // Task 1.2: Render a user greeting to `#userGreeting` 
       // using `firstName`, `lastName`, and the server-provided
       // login timestamp.
+      const firstName = currentSession.firstName;
+      const lastName = currentSession.lastName;
+      const loginTime = currentSession.loginTime;
+      const date = new Date(loginTime);
+      const formatted = date.toLocaleDateString("de-AT", {
+        year: "numeric",
+        month: "long",
+        day: "2-digit",
+        }) + " um " +
+        date.toLocaleTimeString("de-AT", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      greetingElement.textContent = `Hi ${firstName} ${lastName}, du hast dich am ${formatted} angemeldet.`
+        
     } else {
       greetingElement.textContent = messages.loggedOutGreeting;
     }
@@ -210,12 +225,38 @@ window.onload = function () {
   // Login dialog
   document.getElementById('loginForm').addEventListener('submit', (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-
     // Task 1.1: Implement the login submit flow to call `POST /login` 
     // with username and password, handle errors, save the response 
     // into `currentSession`, then call `updateUI()` and `loadMovies()`.
+    const formData = new FormData(e.target);
+    const userName = formData.get("username");
+    const password = formData.get('password');
 
+    fetch("/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: userName,
+        password: password,
+      }),
+    })
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then(data => {
+        currentSession = data || null;
+        updateUI();
+        loadMovies();
+      })
+      .catch(error => {
+        console.error("Login failed:", error);
+        currentSession = null;
+        updateUI();
+        alert(error.message || "Login fehlgeschlagen");
+      });
   });
 
   document.getElementById('cancelLogin').addEventListener('click', () => {
