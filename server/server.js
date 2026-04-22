@@ -50,7 +50,7 @@ app.post("/login", function (req, res) {
 // protection. Implement logout by destroying the session 
 // with error handling. Protect all endpoints that need 
 // authentication with `requireLogin`.
-app.get("/logout", function (req, res) {
+app.get("/logout", requireLogin, function (req, res) {
   req.session.destroy((err) => {
     if (err) {
       console.error("Logout failed:", err);
@@ -101,6 +101,59 @@ app.put("/movies/:imdbID", requireLogin, function (req, res) {
     // Task 2.3: Fetch the movie data from OmdbAPI, follow the pattern used further down 
     // in the GET /search endpoint. Implement conversion of the OmdbAPI response to the 
     // movie format used in the frontend. Make sure to handle errors and timeouts properly.
+    const url = `http://www.omdbapi.com/?i=${encodeURIComponent(imdbID)}&apikey=${config.omdbApiKey}`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), config.omdbTimeoutMs);
+
+    fetch(url, { signal: controller.signal })
+      .then(apiRes => {
+        clearTimeout(timeoutId);
+        if (!apiRes.ok) {
+          return res.sendStatus(apiRes.status);
+        }
+        return apiRes.text().then(data => {
+          let response;
+          try {
+            response = JSON.parse(data);
+          } catch (parseError) {
+            console.error('Failed to parse OMDb response:', parseError);
+            return res.sendStatus(500);
+          }
+
+          if (response.Response === 'True') {
+            const formattedMovie = {
+            imdbID: response.imdbID,
+            Title: response.Title,
+            Released: response.Released,
+            Runtime: parseInt(response.Runtime) || null,
+            Genres: response.Genre ? response.Genre.split(',').map(s => s.trim()) : [],
+            Directors: response.Director ? response.Director.split(',').map(s => s.trim()) : [],
+            Writers: response.Writer ? response.Writer.split(',').map(s => s.trim()) : [],
+            Actors: response.Actors ? response.Actors.split(',').map(s => s.trim()) : [],
+            Plot: response.Plot,
+            Poster: response.Poster,
+            Metascore: parseInt(response.Metascore) || null,
+            imdbRating: parseFloat(response.imdbRating) || null
+            };
+
+            movieModel.setUserMovie(username, imdbID, formattedMovie);
+            res.sendStatus(201);
+
+          } else {
+            res.sendStatus(404);
+          }
+        });
+      })
+      .catch((err) => {
+        clearTimeout(timeoutId);
+        if (err.name === 'AbortError') {
+          console.error('OMDb API request timeout');
+          return res.sendStatus(504);
+        }
+        console.error('OMDb API error:', err);
+        res.sendStatus(500);
+      });
   } else {
     movieModel.setUserMovie(username, imdbID, req.body);
     res.sendStatus(200);
